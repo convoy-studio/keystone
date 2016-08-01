@@ -20,16 +20,20 @@ var Item = React.createClass({
 		var iconName = '_blank';
 		if (_.contains(ICON_EXTS, ext)) iconName = ext;
 		
-		var iconPath = this.props.path.replace('./public/images/upload', '') + this.props.parentId + '/' + id + '_icon.jpg'
-
-		var divStyle = {
-			'width': '80px',
-			'height': 'auto',
-			'margin-bottom': '10px'
-		};
-
 		var body = [];
-		body.push(<img className='file-icon' src={iconPath} style={divStyle} />);
+
+		if (this.props.path === undefined) {
+			body.push(<img className='file-icon' src={'/keystone/images/icons/32/' + iconName + '.png'} />);
+		} else {
+			var iconPath = this.props.path.replace('./public/images/upload', '') + this.props.parentId + '/' + id + '_icon.jpg'
+			var divStyle = {
+				'width': '80px',
+				'height': 'auto',
+				'margin-bottom': '10px'
+			};
+			body.push(<img className='file-icon' src={iconPath} style={divStyle} />);
+		}
+		
 		body.push(<span className='file-filename'>{filename}</span>);
 
 		if (this.props.size) {
