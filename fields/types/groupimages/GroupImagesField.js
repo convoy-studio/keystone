@@ -10,47 +10,67 @@ var ICON_EXTS = [
 	'wav', 'xls', 'xlsx', 'xml', 'yml', 'zip'
 ];
 
-var Item = React.createClass({
+var Group = React.createClass({
 	
 	render: function () {
-		var filename = this.props.filename;
-		var id = filename.split('.')[0]
-		var ext = filename.split('.').pop();
-
-		var iconName = '_blank';
-		if (_.contains(ICON_EXTS, ext)) iconName = ext;
-		
-		var iconPath = this.props.path.replace('./public/images/upload', '') + this.props.parentId + '/' + id + '_icon.jpg'
-
-		var divStyle = {
-			'width': '80px',
-			'height': 'auto',
-			'margin-bottom': '10px'
-		};
+		// console.log(this.props)
 
 		var body = [];
-		body.push(<img className='file-icon' src={iconPath} style={divStyle} />);
-		body.push(<span className='file-filename'>{filename}</span>);
+		var images = this.props.images.map(function(img, index) {
+			var itemClassName = 'file-item';
+			var filename = img.filename;
+			var ext = filename.split('.').pop();
+			var iconName = '_blank';
+			if (_.contains(ICON_EXTS, ext)) iconName = ext;
 
-		if (this.props.size) {
-			body.push(<span className='file-size'>{bytes(this.props.size)}</span>);
-		}
+			if (img.size) {
+				var size = (<span className='file-size'>{bytes(img.size)}</span>);
+			}
 
-		if (this.props.deleted) {
-			body.push(<span className='file-note-delete'>save to delete</span>);
-		} else if (this.props.isQueued) {
-			body.push(<span className='file-note-upload'>save to upload</span>);
-		}
+			// var deletebtn = (<span className='file-note-delete'>save to delete</span>);
+			// var queuedbtn = (<span className='file-note-upload'>save to upload</span>);
 
-		if (!this.props.isQueued) {
-			var actionLabel = this.props.deleted ? 'undo' : 'remove';
-			body.push(<span className='file-action' onClick={this.props.toggleDelete}>{actionLabel}</span>);
-		}
+			return (
+				<div className={itemClassName} key={index}>
+					<img className='file-icon' src={'/keystone/images/icons/32/' + iconName + '.png'} />
+					<span className='file-filename'>{filename}</span>
+					{size}
+				</div>
+			)			
+		})
+		// for (var i = 0; i < this.props.images.length; i++) {
+		// 	var img = this.props.images[i]
+		// 	var filename = img.filename;
+		// 	var ext = filename.split('.').pop();
 
-		var itemClassName = 'file-item';
-		if (this.props.deleted) itemClassName += ' file-item-deleted';
+		// 	var iconName = '_blank';
+		// 	if (_.contains(ICON_EXTS, ext)) iconName = ext;
 
-		return <div className={itemClassName} key={this.props.key}>{body}</div>;
+		// 	images.push(<img className='file-icon' src={'/keystone/images/icons/32/' + iconName + '.png'} />);
+		// 	images.push(<span className='file-filename'>{img.filename}</span>);
+		// 	if (this.props.size) {
+		// 		images.push(<span className='file-size'>{bytes(img.size)}</span>);
+		// 	}
+
+		// 	if (img.deleted) {
+		// 		images.push(<span className='file-note-delete'>save to delete</span>);
+		// 	} else if (img.isQueued) {
+		// 		images.push(<span className='file-note-upload'>save to upload</span>);
+		// 	}
+
+		// 	if (!img.isQueued) {
+		// 		var actionLabel = img.deleted ? 'undo' : 'remove';
+		// 		images.push(<span className='file-action' onClick={img.toggleDelete}>{actionLabel}</span>);
+		// 	}
+		// }
+		var groupClassName = 'group-item';
+		if (this.props.deleted) groupClassName += ' group-item-deleted';
+		// console.log(images)
+
+
+		// return ;
+		// console.log(images)
+		return <div className={groupClassName} key={this.props.key}>{images}</div>;
 	}
 	
 });
@@ -58,14 +78,13 @@ var Item = React.createClass({
 module.exports = Field.create({
 
 	getInitialState: function () {
-		var items = [];
+		var groups = [];
 		var self = this;
-
-		_.each(this.props.value, function (item) {
-			self.pushItem(item, items, self.props.values.parentId);
+		_.each(this.props.value, function (group, i) {
+			self.pushItem(group, groups, i);
 		});
 
-		return { items: items };
+		return { groups: groups };
 	},
 
 	removeItem: function (i) {
@@ -81,12 +100,9 @@ module.exports = Field.create({
 		this.setState({ items: thumbs });
 	},
 
-	pushItem: function (args, thumbs, parentId) {
-		thumbs = thumbs || this.state.items;
-		var i = thumbs.length;
-		args.toggleDelete = this.removeItem.bind(this, i);
-		args.parentId = parentId
-		thumbs.push(<Item key={i} {...args} />);
+	pushItem: function (args, group, index) {
+		// args.toggleDelete = this.removeItem.bind(this, index);
+		group.push(<Group key={index} {...args} />);
 	},
 
 	fileFieldNode: function () {
@@ -159,11 +175,25 @@ module.exports = Field.create({
 	},
 
 	renderContainer: function () {
-		return ( 
-			<div className='files-container clearfix'>
-				{this.state.items}
+		return (
 
+			<div className="panel-group">
+				<div className="panel panel-default">
+					<div className="panel-heading">
+						<h4 className="panel-title">
+							<a data-toggle="collapse" href="#collapse1">Group 1</a>
+						</h4>
+					</div>
+					<div id="collapse1" className="panel-collapse collapse">
+						<div className='files-container clearfix'>
+							{this.state.items}
+						</div>
+						{this.renderToolbar()}
+					</div>
+				</div>
 			</div>
+
+			
 		);
 	},
 
@@ -193,7 +223,6 @@ module.exports = Field.create({
 
 				<div className="field-ui">
 					{this.renderContainer()}
-					{this.renderToolbar()}
 				</div>
 			</div>
 		);
