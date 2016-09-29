@@ -10,29 +10,6 @@ exports = module.exports = function(req, res) {
 		showCreateForm: _.has(req.query, 'new')
 	};
 
-	if(window.location.pathname.indexOf('posts') > -1) {
-		var btn = '<a href="#" class="btn btn-info show-home-posts">Show home posts</a>';
-		$('.list-pagination').append(btn);
-	}
-	var btnClicked = false;
-	$(body).on('click', '.show-home-posts',
-	function(e) {
-		e.preventDefault();
-		btnClicked = !btnClicked;
-		$('.items-list tbody tr').each(function() {
-			if(btnClicked) {
-				if($(this).find('td:last img').attr('src').indexOf('checkbox-checked') === -1) {
-					console.log('unchecked');
-					$(this).fadeOut();
-					$('.show-home-posts').text('Show all posts');
-				}
-			} else {
-				$(this).not(':visible').fadeIn();
-				$('.show-home-posts').text('Show home posts');
-			}
-		})
-	});
-
 	var sort = { by: req.query.sort || req.list.defaultSort };
 	var filters = req.list.processFilters(req.query.q);
 	var cleanFilters = {};

@@ -3,20 +3,43 @@ jQuery(function($) {
 	// Import
 	var queryfilterUtil = require('queryfilter'),
 		querystringUtil = require('querystring');
-	
+
 	// Cache items
 	var $filters = $('#list-filters');
-	
+
 	// Autofocus the search field if there has been a search
-	
+
 	if ($('.search-list input').val()) {
 		setTimeout(function() {
 			$('.search-list input').focus();
 		}, 10);
 	}
-	
+
+	if(top.window.location.pathname.indexOf('posts') > -1) {
+		var btn = '<a href="#" class="btn btn-info show-home-posts">Show home posts</a>';
+		$('.list-pagination').append(btn);
+	}
+	var btnClicked = false;
+	$(body).on('click', '.show-home-posts',
+	function(e) {
+		e.preventDefault();
+		btnClicked = !btnClicked;
+		$('.items-list tbody tr').each(function() {
+			if(btnClicked) {
+				if($(this).find('td:last img').attr('src').indexOf('checkbox-checked') === -1) {
+					console.log('unchecked');
+					$(this).fadeOut();
+					$('.show-home-posts').text('Show all posts');
+				}
+			} else {
+				$(this).not(':visible').fadeIn();
+				$('.show-home-posts').text('Show home posts');
+			}
+		})
+	});
+
 	/** Columns */
-	
+
 	$('.btn-toggle-column').click(function() {
 		var key = $(this).data('col');
 		if (_.contains(Keystone.list.cols, key)) {
@@ -26,9 +49,9 @@ jQuery(function($) {
 			$.addSearchParam({ cols: Keystone.list.cols.join(',') }, true);
 		}
 	});
-	
+
 	/** Filtering */
-	
+
 	var checkFiltersStatus = function() {
 		var enabledFilters = $('.filter.active'),
 			enabledPaths = _.map(enabledFilters, function(i) { return $(i).data('path'); });
@@ -38,9 +61,9 @@ jQuery(function($) {
 			$(this).parent()[_.contains(enabledPaths, path) ? 'addClass' : 'removeClass']('disabled');
 		});
 	};
-	
+
 	checkFiltersStatus();
-	
+
 	$('.add-list-filter').click(function() {
 		var path = $(this).data('path');
 		var $filter = $('.filter[data-path="' + path + '"]').addClass('active');
@@ -52,7 +75,7 @@ jQuery(function($) {
 			catch(e) {}// eslint-disable-line no-empty
 		}
 	});
-	
+
 	// Handle switching between number types
 	// If the option selected is between, then show the between range inputs
 	// otherwise show the standard input field
@@ -70,8 +93,8 @@ jQuery(function($) {
 	});
 	// Ensure that the correct fields are shown initially
 	$filters.find('.filter .btn-group-operator .btn.active :radio').trigger('change');
-	
-	
+
+
 	$('.clear-filter').click(function() {
 		$(this).closest('.filter').removeClass('active');
 		checkFiltersStatus();
@@ -82,7 +105,7 @@ jQuery(function($) {
 	// Recent Searches
 
 	if (window.localStorage) {
-		
+
 		var querystring = querystringUtil.parse(document.location.search.replace('?', ''));
 		var recentSearches;
 		var $searchDropdown = $('.js-recent-searches');
@@ -109,7 +132,7 @@ jQuery(function($) {
 			recentSearches = recentSearches.slice(0, 20); // only keep the 20 most recent
 			window.localStorage.setItem(key, JSON.stringify(recentSearches));
 		}
-		
+
 		// Add the recent searches to the dom
 		if (recentSearches.length !== 0) {
 			recentSearches.forEach(function(recentSearch){
@@ -130,10 +153,10 @@ jQuery(function($) {
 
 	// --------------------------------
 	// Filters
-	
+
 	var parseValueWithType = function(type, value){
 		var result = null;
-		
+
 		switch (type) {
 			case 'number':
 			case 'money':
@@ -142,7 +165,7 @@ jQuery(function($) {
 					result = value;
 				}
 				break;
-			
+
 			case 'date':
 			case 'datetime':
 				value = moment(value);
@@ -150,26 +173,26 @@ jQuery(function($) {
 					result = value.format('YYYY-MM-DD');
 				}
 				break;
-		
+
 			default:
 				result = value;
 				break;
 		}
-		
+
 		return result;
 	};
-	
-	
+
+
 	$filters.submit(function(e) {
-		
+
 		e.preventDefault();
-		
+
 		var filterQueryString = [],
 			search = $(this).find('.js-search-list').val(),
 			cancelled = false;
-		
+
 		$(this).find('.filter.active').each(function() {
-			
+
 			var $filter = $(this),
 				$ops = $filter.find('.btn.active[data-opt]'), // active options
 				data = {
@@ -178,17 +201,17 @@ jQuery(function($) {
 				},
 				queryFilter = queryfilterUtil.QueryFilter.create(),
 				value;
-			
+
 			$ops.each(function() {
 				data[$(this).data('opt')] = $(this).data('value');
 			});
-			
+
 			queryFilter.type = data.type;
 			queryFilter.key = data.path;
 			queryFilter.inverse = data.inv;
 			queryFilter.exact = data.exact;
 			queryFilter.operator = data.operator;
-			
+
 			if (data.operator === 'bt') {
 				value = [
 					parseValueWithType(data.type, $filter.find('input.filter-input-range1').val()),
@@ -217,13 +240,13 @@ jQuery(function($) {
 							queryFilter.value = value;
 						}
 						break;
-					
+
 					case 'select':
 						if (value = parseValueWithType(data.type, $filter.find('select[name=value]').val())) {// eslint-disable-line no-cond-assign
 							queryFilter.value = value;
 						}
 						break;
-					
+
 					case 'location':
 						value = [];
 						$filter.find('input[type=text]').each(function() {
@@ -231,11 +254,11 @@ jQuery(function($) {
 						});
 						queryFilter.value = value;
 						break;
-					
+
 					case 'boolean':
 						queryFilter.value = data.value;
 						break;
-						
+
 					case 'cloudinaryimage':
 					case 'cloudinaryimages':
 					case 's3file':
@@ -243,7 +266,7 @@ jQuery(function($) {
 							queryFilter.value = data.value;
 						}
 						break;
-					
+
 					case 'relationship':
 						if (value = parseValueWithType(data.type, $filter.find('input[type=hidden]').val())) {// eslint-disable-line no-cond-assign
 							queryFilter.value = value;
@@ -251,22 +274,22 @@ jQuery(function($) {
 						break;
 				}
 			}
-			
+
 			if (queryFilter.value != null) {
 				filterQueryString.push(queryFilter.toString());
 			}
-			
+
 		});
-		
+
 		if (cancelled === false) {
 			$.addSearchParam({
 				search: search || undefined,
 				q: filterQueryString.join(';') || undefined
 			}, true);
 		}
-	
+
 	});
-	
+
 	/** List Controls */
 	$('table.items-list tbody').on('mouseenter mouseleave', 'tr a.control-delete', function(e) {
 		if (e.type == 'mouseenter') {// eslint-disable-line eqeqeq
@@ -279,7 +302,7 @@ jQuery(function($) {
 		if (!confirm('Are you sure you want to delete this ' + Keystone.list.singular.toLowerCase() + '?')) {
 			return false;
 		}
-		var $row = $(this).closest('tr'), 
+		var $row = $(this).closest('tr'),
 			$table = $(this).closest('table');
 		$row.addClass('delete-inprogress');
 		var onError = function(err) {
@@ -337,7 +360,7 @@ jQuery(function($) {
 					} else {
 						$.ajax('/keystone/api/' + Keystone.list.path + '/fetch', {
 							data: Keystone.csrf({
-								items: { 
+								items: {
 									first: Keystone.items.first,
 									last: Keystone.items.last,
 									total: Keystone.items.total,
@@ -367,11 +390,11 @@ jQuery(function($) {
 			}
 		}).error(onError);
 	});
-	
+
 	$('a.control-sort').hover(function() {
 		$(this).closest('tr').addClass('sort-hover');
 	}, function() {
 		$(this).closest('tr').removeClass('sort-hover');
 	});
-	
+
 });
