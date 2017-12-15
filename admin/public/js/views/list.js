@@ -18,25 +18,64 @@ jQuery(function($) {
 	if(top.window.location.pathname.indexOf('posts') > -1) {
 		var btn = '<a href="#" class="btn btn-info show-home-posts">Show home posts</a>';
 		$('.list-pagination').append(btn);
+		var btn = '<a href="#" class="btn btn-info show-fashion-designers-posts">Show fashion designers posts</a>';
+    $('.list-pagination').append(btn);
+    var inHome = [], inFashionDesigners = [], rest = [];
+    $('.items-list tbody tr').each( function() {
+      // inHome
+      if($(this).find('td').eq(-2).find('img').attr('src').indexOf('checkbox-checked') > -1) inHome.push( $(this) )
+      // inFashionDesigners
+      else if($(this).find('td').eq(-1).find('img').attr('src').indexOf('checkbox-checked') > -1) inFashionDesigners.push( $(this) )
+      else rest.push( $(this) )
+    } )
+    var filter = ''
+    $(body).on('click', '.show-home-posts', function(e) {
+      e.preventDefault();
+      if ( filter === '' || filter === 'inFashionDesigners' ) {
+        filter = 'inHome'
+        $(inHome).each( function() {
+          $(this).not(':visible').fadeIn()
+        } )
+        $(rest).each( function() {
+          $(this).fadeOut()
+        } )
+        $(inFashionDesigners).each( function() {
+          $(this).fadeOut()
+        } )
+        $('.show-home-posts').text('Show all posts');
+        $('.show-fashion-designers-posts').text('Show fashion designers posts');
+      } else {
+        filter = ''
+        $('.items-list tbody tr').each( function() {
+          $(this).not(':visible').fadeIn();
+        } )
+        $('.show-home-posts').text('Show home posts');
+      }
+    });
+    $(body).on('click', '.show-fashion-designers-posts', function(e) {
+      e.preventDefault();
+      if ( filter === '' || filter === 'inHome'  ) {
+        filter = 'inFashionDesigners'
+        $(inFashionDesigners).each( function() {
+          $(this).not(':visible').fadeIn()
+        } )
+        $(rest).each( function() {
+          $(this).fadeOut()
+        } )
+        $(inHome).each( function() {
+          $(this).fadeOut()
+        } )
+        $('.show-fashion-designers-posts').text('Show all posts');
+        $('.show-home-posts').text('Show home posts');
+      } else {
+        filter = ''
+        $('.items-list tbody tr').each( function() {
+          $(this).not(':visible').fadeIn();
+        } )
+        $('.show-fashion-designers-posts').text('Show fashion designers posts');
+      }
+    });
 	}
-	var btnClicked = false;
-	$(body).on('click', '.show-home-posts',
-	function(e) {
-		e.preventDefault();
-		btnClicked = !btnClicked;
-		$('.items-list tbody tr').each(function() {
-			if(btnClicked) {
-				if($(this).find('td:last img').attr('src').indexOf('checkbox-checked') === -1) {
-					console.log('unchecked');
-					$(this).fadeOut();
-					$('.show-home-posts').text('Show all posts');
-				}
-			} else {
-				$(this).not(':visible').fadeIn();
-				$('.show-home-posts').text('Show home posts');
-			}
-		})
-	});
 
 	/** Columns */
 
